@@ -62,6 +62,7 @@ import com.t8rin.imagetoolbox.feature.draw.domain.DrawMode
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawOnBackgroundParams
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawPathMode
 import com.t8rin.imagetoolbox.feature.draw.domain.ImageDrawApplier
+import com.t8rin.imagetoolbox.feature.draw.domain.drawExportFormat
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.UiPathPaint
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.DrawRenderCache
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.applySpotHeal
@@ -185,7 +186,7 @@ class DrawComponent @AssistedInject internal constructor(
     val havePaths: Boolean
         get() = paths.isNotEmpty() || lastPaths.isNotEmpty() || undonePaths.isNotEmpty()
 
-    private val _imageFormat = mutableStateOf(ImageFormat.Default)
+    private val _imageFormat = mutableStateOf(drawExportFormat())
     val imageFormat by _imageFormat
 
     private val _isSaving: MutableState<Boolean> = mutableStateOf(false)
@@ -304,7 +305,12 @@ class DrawComponent @AssistedInject internal constructor(
                     }
                 }
                 updateBitmap(data.image)
-                _imageFormat.update { data.imageInfo.imageFormat }
+                _imageFormat.update {
+                    drawExportFormat(
+                        sourceExtension = imageGetter.getExtension(uri.toString()),
+                        suggestedFormat = data.imageInfo.imageFormat
+                    )
+                }
             } ?: run {
                 _isImageLoading.value = false
             }
@@ -371,6 +377,7 @@ class DrawComponent @AssistedInject internal constructor(
         }
         _backgroundColor.value = color
         _backgroundGradient.value = gradient
+        _imageFormat.value = drawExportFormat()
 
         componentScope.launch {
             val newValue = DrawOnBackgroundParams(

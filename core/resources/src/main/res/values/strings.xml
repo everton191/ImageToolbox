@@ -7528,4 +7528,6 @@
     <string name="assistant_gallery_unsupported_condition">This search supports visible content, named people, dates, one album and a filename. Exclusions, exact text or GPS matching, multiple file formats and a requested result count are not supported yet. Please adjust these conditions.</string>
     <string name="assistant_gallery_ambiguous_name">Several named people match this wording. Please use the full name shown in the gallery.</string>
     <string name="assistant_gallery_closest">No exact matches. Here are the closest available photos; your people, date, album and filename filters are still applied.</string>
+    <string name="draw_stylus_only">Only draw with a pen (S Pen)</string>
+    <string name="draw_stylus_only_sub">Use the pen to draw or erase. Use your fingers to pan and pinch to zoom.</string>
 </resources>

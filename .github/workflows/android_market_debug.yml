@@ -23,8 +23,16 @@ jobs:
           java-package: 'jdk'
           cache: gradle
 
-      - name: Build Market Debug APKs
-        run: bash ./gradlew assembleMarketDebug
+      - name: Test drawing and build Market Debug APKs
+        run: bash ./gradlew :feature:draw:testMarketDebugUnitTest :app:assembleMarketDebug
+
+      - name: Upload drawing unit test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Drawing Unit Test Results
+          path: feature/draw/build/test-results/testMarketDebugUnitTest/
+          if-no-files-found: ignore
 
       - name: Upload Market Debug APK
         uses: actions/upload-artifact@v7

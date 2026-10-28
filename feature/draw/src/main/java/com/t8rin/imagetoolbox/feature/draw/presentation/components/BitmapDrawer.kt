@@ -142,6 +142,7 @@ fun BitmapDrawer(
     onRemovePath: (UiPathPaint) -> Unit = {},
     pendingSpotHealPaths: List<UiPathPaint> = emptyList(),
     applySpotHealManually: Boolean = false,
+    stylusOnlyDraw: Boolean = false,
 ) {
     val context = LocalContext.current
 
@@ -161,7 +162,8 @@ fun BitmapDrawer(
             currentDrawPosition = currentDrawPosition,
             zoomState = zoomState,
             globalTouchPointersCount = globalTouchPointersCount,
-            panEnabled = panEnabled
+            panEnabled = panEnabled,
+            stylusOnlyDraw = stylusOnlyDraw
         ),
         contentAlignment = Alignment.Center
     ) {
@@ -935,6 +937,19 @@ fun BitmapDrawer(
                 onInvalidate = { invalidations++ },
                 onUpdateCurrentDrawPosition = { currentDrawPosition = it },
                 onUpdateDrawDownPosition = { drawDownPosition = it },
+                stylusOnlyDraw = stylusOnlyDraw,
+                onCancelDraw = {
+                    drawPath = Path()
+                    pathWithoutTransformations = Path()
+                    currentDrawPosition = Offset.Unspecified
+                    previousDrawPosition = Offset.Unspecified
+                    drawDownPosition = Offset.Unspecified
+                    strokeIsManualSpotHeal = null
+                    motionEvent.value = MotionEvent.Idle
+                    warpRuntimeStrokes = emptyList()
+                    warpClearTrigger++
+                    invalidations++
+                },
                 drawEnabled = !panEnabled && !isWarpInputLocked && pendingCommit == null && drawImageBitmap != null &&
                         (renderedPaths == paths || isEraserOn || (drawMode !is DrawMode.PathEffect && drawMode !is DrawMode.SpotHeal && drawMode !is DrawMode.Warp)),
                 helperGridParams = helperGridParams,

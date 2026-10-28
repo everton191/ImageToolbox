@@ -47,6 +47,8 @@ fun BoxScope.BitmapDrawerPreview(
     helperGridParams: HelperGridParams,
     drawBitmapBorder: Boolean,
     beforeHelperGridModifier: Modifier = Modifier,
+    stylusOnlyDraw: Boolean = false,
+    onCancelDraw: () -> Unit = {},
 ) {
     Picture(
         model = preview,
@@ -58,7 +60,9 @@ fun BoxScope.BitmapDrawerPreview(
                 onInvalidate = onInvalidate,
                 onUpdateCurrentDrawPosition = onUpdateCurrentDrawPosition,
                 onUpdateDrawDownPosition = onUpdateDrawDownPosition,
-                enabled = drawEnabled
+                enabled = drawEnabled,
+                stylusOnlyDraw = stylusOnlyDraw,
+                onCancelDraw = onCancelDraw
             )
             .clip(ShapeDefaults.extremeSmall)
             .transparencyChecker()

@@ -23,12 +23,16 @@ import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.isSpecified
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.t8rin.gesture.pointerMotionEvents
@@ -43,7 +47,8 @@ fun Modifier.pointerDrawObserver(
     currentDrawPosition: Offset,
     zoomState: ZoomState,
     globalTouchPointersCount: MutableIntState,
-    panEnabled: Boolean
+    panEnabled: Boolean,
+    stylusOnlyDraw: Boolean = false
 ) = this.composed {
     var globalTouchPosition by remember { mutableStateOf(Offset.Unspecified) }
 
@@ -73,10 +78,10 @@ fun Modifier.pointerDrawObserver(
         .clipToBounds()
         .zoomable(
             zoomState = zoomState,
-            zoomEnabled = (globalTouchPointersCount.intValue >= 2 || panEnabled),
-            enableOneFingerZoom = panEnabled,
+            zoomEnabled = (stylusOnlyDraw || globalTouchPointersCount.intValue >= 2 || panEnabled),
+            enableOneFingerZoom = stylusOnlyDraw || panEnabled,
             onDoubleTap = { pos ->
-                if (panEnabled) zoomState.defaultZoomOnDoubleTap(pos)
+                if (stylusOnlyDraw || panEnabled) zoomState.defaultZoomOnDoubleTap(pos)
             }
         )
 }
@@ -87,14 +92,89 @@ fun Modifier.pointerDrawHandler(
     onInvalidate: () -> Unit,
     onUpdateCurrentDrawPosition: (Offset) -> Unit,
     onUpdateDrawDownPosition: (Offset) -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
+    stylusOnlyDraw: Boolean = false,
+    onCancelDraw: () -> Unit = {}
 ) = if (enabled) {
     this.composed {
+        val receiveMotionEvent by rememberUpdatedState(onReceiveMotionEvent)
+        val invalidate by rememberUpdatedState(onInvalidate)
+        val updateCurrentDrawPosition by rememberUpdatedState(onUpdateCurrentDrawPosition)
+        val updateDrawDownPosition by rememberUpdatedState(onUpdateDrawDownPosition)
+        val cancelDraw by rememberUpdatedState(onCancelDraw)
+
         var drawStartedWithOnePointer by remember {
             mutableStateOf(false)
         }
 
-        Modifier.pointerMotionEvents(
+        if (stylusOnlyDraw) Modifier.pointerInput(stylusOnlyDraw) {
+            val session = StylusInputSession()
+            try {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Main)
+                        val update = session.update(event.changes.map { pointer ->
+                            StylusPointer(
+                                id = pointer.id.value,
+                                pressed = pointer.pressed,
+                                previouslyPressed = pointer.previousPressed,
+                                isStylus = pointer.type == PointerType.Stylus ||
+                                        pointer.type == PointerType.Eraser,
+                                consumed = pointer.isConsumed
+                            )
+                        })
+                        val pointer = event.changes.firstOrNull { it.id.value == update.pointerId }
+
+                        when (update.action) {
+                            StylusAction.Down -> pointer?.let {
+                                updateDrawDownPosition(it.position)
+                                updateCurrentDrawPosition(it.position)
+                                receiveMotionEvent(MotionEvent.Down)
+                                invalidate()
+                            }
+
+                            StylusAction.Move -> pointer?.let {
+                                if (it.position != it.previousPosition) {
+                                    updateCurrentDrawPosition(it.position)
+                                    receiveMotionEvent(MotionEvent.Move)
+                                    invalidate()
+                                }
+                            }
+
+                            StylusAction.Up -> pointer?.let {
+                                updateCurrentDrawPosition(it.position)
+                                receiveMotionEvent(MotionEvent.Up)
+                                invalidate()
+                            }
+
+                            StylusAction.Cancel -> {
+                                cancelDraw()
+                                invalidate()
+                            }
+
+                            StylusAction.Idle -> Unit
+                        }
+
+                        if (update.consumeEvent) {
+                            // Keep a resting palm out of the parent transform detector too.
+                            event.changes.forEach { it.consume() }
+                        } else {
+                            val finalEvent = awaitPointerEvent(PointerEventPass.Final)
+                            if (finalEvent.changes.any { it.pressed } &&
+                                finalEvent.changes.any { it.isConsumed }
+                            ) {
+                                session.navigationStarted()
+                            }
+                        }
+                    }
+                }
+            } finally {
+                if (session.hasActiveStroke) {
+                    cancelDraw()
+                    invalidate()
+                }
+            }
+        } else Modifier.pointerMotionEvents(
             onDown = { pointerInputChange ->
                 drawStartedWithOnePointer = globalTouchPointersCount.intValue <= 1
 

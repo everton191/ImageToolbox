@@ -139,6 +139,7 @@ fun DrawContent(
     val isPortrait by isPortraitOrientationAsState()
 
     var panEnabled by rememberSaveable(component.drawBehavior) { mutableStateOf(false) }
+    var stylusOnlyDraw by rememberSaveable { mutableStateOf(false) }
 
     var strokeWidth by rememberSaveable(
         component.drawBehavior,
@@ -353,6 +354,7 @@ fun DrawContent(
                         .aspectRatio(aspectRatio, isPortrait)
                         .fillMaxSize(),
                     panEnabled = panEnabled,
+                    stylusOnlyDraw = stylusOnlyDraw,
                     onRequestFiltering = component::filter,
                     drawPathMode = drawPathMode,
                     backgroundColor = component.backgroundColor,
@@ -377,6 +379,11 @@ fun DrawContent(
                     }
                 },
                 secondaryControls = secondaryControls,
+                stylusOnlyDraw = stylusOnlyDraw,
+                onStylusOnlyDrawChange = {
+                    stylusOnlyDraw = it
+                    if (it) panEnabled = false
+                },
                 drawColor = drawColor,
                 onDrawColorChange = { drawColor = it },
                 gradientPalette = gradientPalette,

@@ -55,6 +55,7 @@ import com.t8rin.imagetoolbox.feature.draw.domain.DrawMode
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawPathMode
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.DrawRenderCache
 import kotlinx.coroutines.delay
+import net.engawapg.lib.zoomable.ZoomState
 import java.util.concurrent.atomic.AtomicInteger
 
 private class LiveDrawTestState(context: ComponentContext) : ComponentContext by context {
@@ -83,6 +84,8 @@ class LiveDrawTestActivity : ComponentActivity() {
     var background by mutableStateOf(Color.Transparent)
     var backgroundGradient: GradientFill? by mutableStateOf(null)
     var erasing by mutableStateOf(false)
+    var stylusOnlyDraw by mutableStateOf(false)
+    val zoomState = ZoomState(maxScale = 30f)
     var softness by mutableStateOf(0.pt)
     var alpha by mutableStateOf(1f)
     var width by mutableStateOf(65.pt)
@@ -130,6 +133,8 @@ class LiveDrawTestActivity : ComponentActivity() {
                         BitmapDrawer(
                             imageBitmap = state.image,
                             renderCache = state.cache,
+                            zoomState = zoomState,
+                            stylusOnlyDraw = stylusOnlyDraw,
                             paths = displayedPaths,
                             pendingSpotHealPaths = paths.filter { it.isPendingSpotHeal },
                             applySpotHealManually = manualHealing,

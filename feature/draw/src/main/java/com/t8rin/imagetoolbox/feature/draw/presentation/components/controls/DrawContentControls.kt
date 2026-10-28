@@ -56,6 +56,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.ImageFormatSelec
 import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.MagnifierEnabledSelector
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
+import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceRowSwitch
 import com.t8rin.imagetoolbox.core.ui.widget.saver.ColorSaver
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawBehavior
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawLineStyle
@@ -79,6 +80,8 @@ internal fun DrawContentControls(
     onDetectFaces: (Boolean) -> Unit,
     isFaceDetectionEnabled: Boolean,
     secondaryControls: @Composable () -> Unit,
+    stylusOnlyDraw: Boolean,
+    onStylusOnlyDrawChange: (Boolean) -> Unit,
     drawColor: Color,
     onDrawColorChange: (Color) -> Unit,
     gradientPalette: GradientPalette,
@@ -123,6 +126,14 @@ internal fun DrawContentControls(
                 secondaryControls()
             }
         }
+        PreferenceRowSwitch(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.draw_stylus_only),
+            subtitle = stringResource(R.string.draw_stylus_only_sub),
+            checked = stylusOnlyDraw,
+            onClick = onStylusOnlyDrawChange,
+            shape = ShapeDefaults.extraLarge
+        )
         AnimatedVisibility(
             visible = drawMode !is DrawMode.SpotHeal && drawMode !is DrawMode.Warp,
             enter = fadeIn() + expandVertically(),

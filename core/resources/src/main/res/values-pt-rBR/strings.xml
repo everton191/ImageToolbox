@@ -7499,4 +7499,6 @@
     <string name="assistant_gallery_unsupported_condition">Esta pesquisa suporta conteúdo visível, pessoas nomeadas, datas, um álbum e um nome de arquivo. Exclusões, texto exato ou correspondência de GPS, vários formatos de arquivo e uma contagem de resultados solicitada ainda não são suportados. Por favor, ajuste essas condições.</string>
     <string name="assistant_gallery_ambiguous_name">Várias pessoas nomeadas correspondem a esta expressão. Por favor, use o nome completo mostrado na galeria.</string>
     <string name="assistant_gallery_closest">Não há correspondências exatas. Aqui estão as fotos disponíveis mais próximas; seus filtros de pessoas, data, álbum e nome de arquivo ainda serão aplicados.</string>
+    <string name="draw_stylus_only">Desenhar somente com caneta (S Pen)</string>
+    <string name="draw_stylus_only_sub">Use a caneta para desenhar ou apagar. Use os dedos para mover e a pinça para ampliar.</string>
 </resources>
